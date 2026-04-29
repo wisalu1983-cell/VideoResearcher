@@ -1,0 +1,42 @@
+video:
+  id:
+  title:
+  source_type: local_video
+  source_path:
+  language:
+  duration:
+  processed_at:
+
+analysis_profile:
+  user_focus:
+  video_type: unknown
+  value_directions: []
+
+chapters:
+  - id: ch-001
+    title:
+    start:
+    end:
+    summary:
+    value_level: medium
+    tags: []
+    segments:
+      - id: seg-001
+        start:
+        end:
+        type: concept
+        summary:
+        key_points: []
+        original_terms: []
+        original_snippets: []
+        supports_questions: []
+        confidence: medium
+
+follow_up_index:
+  suggested_questions: []
+  important_topics: []
+
+quality:
+  transcription_quality: A_precise
+  timestamp_quality: precise
+  known_limitations: []

@@ -11,22 +11,23 @@ VideoResearcher 是一个视频理解 Agent 工具项目，目标是帮助用户
 
 | 阶段 | 版本 | 状态 | 入口 |
 |---|---|---|---|
-| 当前版本 | v0.1 | 待启动：项目管理与模板骨架 | `ProjectManager/Plan/v0.1/README.md` |
-| 下一目标 | V1 | 自动建索引 | 待启动 |
+| 已收口 | v0.1 / R0 | 规格、模板、数据契约、QA 口径已完成 | `ProjectManager/Plan/v0.1/README.md` |
+| 当前版本 | V1 | 自动建索引，准备启动 | `ProjectManager/Plan/V1/README.md` |
 | 核心可用 | V2-lite | 基本追问可用 | 待启动 |
 
-## 当前阶段（v0.1）
+## 当前阶段（V1）
 
-**阶段目标**：建立项目管理体系、视频项目产物模板、核心规格 current spec、QA 验收口径和脚本入口，为 V1 / V2-lite 开发做准备。
+**阶段目标**：实现本地视频到带时间戳转录、Markdown 笔记、YAML 主索引、JSON 派生索引和日志的自动建索引链路。
 
-**当前状态**：需求调研文档已完成；项目管理骨架已从 Mathquest 管理体系抽象并实例化到本项目。
+**当前状态**：v0.1 已完成收口验收；V1 计划入口已建立，准备启动本地处理脚本基线。
 
-**下一步**：补齐 v0.1 的 Specs current 文档，确定 `video_index.yaml` 字段、笔记模板、失败日志格式，并开始本地视频处理脚本设计。
+**下一步**：启动 V1 Phase 1，建立 CLI 脚本骨架、本地视频输入校验和输出项目目录初始化。
 
 ## 权威入口
 
 - 需求调研：`video_agent_requirements_research.md`
-- 当前版本：`ProjectManager/Plan/v0.1/README.md`
+- 当前版本：`ProjectManager/Plan/V1/README.md`
+- v0.1 收口：`ProjectManager/Reports/2026-04-29-v0.1-closure-report.md`
 - 规格索引：`ProjectManager/Specs/_index.md`
 - 开放问题：`ProjectManager/ISSUE_LIST.md`
 - 候选需求：`ProjectManager/Backlog.md`

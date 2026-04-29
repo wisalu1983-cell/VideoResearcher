@@ -1,0 +1,25 @@
+{
+  "video_id": "",
+  "language": "",
+  "duration": "",
+  "tool": {
+    "name": "",
+    "version": "",
+    "model": "",
+    "parameters": {}
+  },
+  "quality": {
+    "transcription_quality": "A_precise | B_overview | C_unreliable",
+    "timestamp_quality": "precise | approximate | unreliable",
+    "known_limitations": []
+  },
+  "segments": [
+    {
+      "id": "seg-001",
+      "start": "00:00:00",
+      "end": "00:00:05",
+      "text": "",
+      "confidence": null
+    }
+  ]
+}
