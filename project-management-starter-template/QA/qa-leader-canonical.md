@@ -22,7 +22,18 @@
 
 L1 及以上至少包含：ID、Test Condition、Test Basis、Procedure、Oracle、Expected UX / Expected Outcome、Priority、Verification。
 
-L2 / L3 必须增加：Risk、Technique、Preconditions、Evidence、Result，并包含 Traceability Summary、Risk Model、Coverage Matrix、Exit Criteria、Residual Risk。
+L2 / L3 必须增加：Risk、Technique、Preconditions、Evidence、Result，并包含 Traceability Summary、Risk Model、Coverage Matrix、Execution Matrix、Exit Criteria、Residual Risk。
+
+### Execution Matrix 硬性要求
+
+L1 及以上 QA 在声明 PASS / FAIL / RISK 前，必须为每个 Functional Case 和 Exploratory Charter 留下用例 ID 级执行记录。
+
+1. 记录可以写在 `test-cases-vN.md` 的 Result / Evidence 列，也可以单独写入 `execution-matrix.md`；若单独成文，`qa-summary.md` 必须链接它。
+2. Execution Matrix 至少包含：`ID`、`Result`、`执行方式`、`Evidence`、`备注 / 残余风险`。
+3. 命令级 PASS 不能替代用例 ID 级 PASS；必须能从每个用例 ID 追溯到具体测试名、源码行、截图、手工记录或命令输出。
+4. 每个测试用例 ID 必须且只能有一个当前执行结论；未执行必须标 `BLOCKED` 或 `SKIP` 并说明原因。
+5. 探索式 charter 也必须进入矩阵。若结论是 `RISK`，必须写清用户感知、后续观察条件和是否阻塞。
+6. Exit Criteria 只能基于执行矩阵判断。若矩阵缺任何 P0 / P1 用例结果，不得声明本轮 QA PASS。
 
 ## 3. 模块划分原则
 
