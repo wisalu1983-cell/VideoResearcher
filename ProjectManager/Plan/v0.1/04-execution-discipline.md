@@ -1,0 +1,17 @@
+# v0.1 执行纪律与验收规则
+
+## 执行原则
+
+- 先规格和产物契约，再脚本实现。
+- `video_index.yaml` 是人工/Agent 主索引，JSON 是派生产物。
+- 外部资料使用规则必须在追问实现前明确。
+- 失败日志字段必须在脚本开发前明确。
+- current spec 只写已确认长期行为，开发期只在 subplan 标 `Spec impact`。
+
+## 验收规则
+
+- ProjectManager 入口完整。
+- Specs 维度覆盖需求调研中的核心长期能力。
+- QA 能力台账包含视频项目特有的验收类型。
+- `python scripts/pm_sync_check.py` 通过。
+- v0.1 收口时明确 V1 / V2-lite 的下一步入口。
