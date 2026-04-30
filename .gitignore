@@ -1,0 +1,4 @@
+VedioSamples/
+outputs/
+__pycache__/
+*.pyc
