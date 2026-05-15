@@ -13,20 +13,20 @@ VideoResearcher 是一个视频理解 Agent 工具项目，目标是帮助用户
 |---|---|---|---|
 | 已收口 | v0.1 / R0 | 规格、模板、数据契约、QA 口径已完成 | `ProjectManager/Plan/v0.1/README.md` |
 | 已收口 | V1 | 自动建索引，Phase 4 已完成 | `ProjectManager/Plan/V1/README.md` |
-| 下一版本 | V2-lite | 基本追问可用 | 待启动 |
+| 当前版本 | V2-lite | 基本追问闭环，Phase 1-2 已完成 | `ProjectManager/Plan/V2-lite/README.md` |
 
-## 当前阶段（V1）
+## 当前阶段（V2-lite）
 
-**阶段目标**：实现本地视频到带时间戳转录、Markdown 笔记、YAML 主索引、JSON 派生索引和日志的自动建索引链路。
+**阶段目标**：在 V1 索引产物基础上建立基本追问闭环，支持关键词检索片段、时间段转录回查、索引回写和不足提示。
 
-**当前状态**：v0.1 已完成收口验收；V1 Phase 1-4 已完成。Phase 4 已补齐 `process_video.py --phase4` 产物结构 QA、`logs/qa_report.md`、失败记录和处理日志收口；当前真实样本已通过 V1 产物结构验收。
+**当前状态**：V2-lite Phase 1-2 已完成。`scripts/query_video.py` 已实现检索核心（关键词搜索、转录提取）和索引回写（主题追加、价值等级修改、变更日志）。38/38 测试通过，真实样本 QA 验证通过。
 
-**下一步**：进入 V2-lite 规划，围绕基本追问、片段检索、答案依据和不足提示建立闭环。
+**下一步**：围绕真实追问场景迭代改进（繁简体归一化、同义词扩展、更高质量转录模型）。
 
 ## 权威入口
 
 - 需求调研：`video_agent_requirements_research.md`
-- 当前版本：`ProjectManager/Plan/V1/README.md`
+- 当前版本：`ProjectManager/Plan/V2-lite/README.md`
 - v0.1 收口：`ProjectManager/Reports/2026-04-29-v0.1-closure-report.md`
 - 规格索引：`ProjectManager/Specs/_index.md`
 - 开放问题：`ProjectManager/ISSUE_LIST.md`

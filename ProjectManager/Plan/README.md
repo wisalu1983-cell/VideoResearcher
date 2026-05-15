@@ -8,7 +8,7 @@
 | 想确认什么 | 读取入口 |
 |---|---|
 | 当前项目状态 / 下一步 | `../Overview.md` |
-| 当前版本入口 | `v0.1/README.md` |
+| 当前版本入口 | `V2-lite/README.md` |
 | PM 写入路由 | `rules/pm-write-routing.md` |
 | 文档归属 | `rules/document-ownership.md` |
 | 版本生命周期 | `version-lifecycle.md` |
@@ -17,5 +17,6 @@
 
 | 文件 | 用途 | 状态 |
 |---|---|---|
+| `V2-lite/README.md` | 基本追问闭环入口 | Phase 1-2 已完成 |
 | `V1/README.md` | 自动建索引入口 | Phase 4 已完成，V1 收口 |
 | `v0.1/README.md` | 项目管理与模板骨架入口 | 已收口 |
