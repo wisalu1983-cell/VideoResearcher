@@ -1,0 +1,14 @@
+---
+description: VideoResearcher Agent workflow for video processing and note synthesis
+alwaysApply: true
+---
+
+# VideoResearcher Workflow
+
+- This repository is an Agent-operable Git project for local video understanding, not a standalone end-user app.
+- `scripts/process_video.py` owns deterministic processing only: input validation, audio extraction, transcription, draft index generation, draft note generation, and logs.
+- Script-generated notes are drafts. Treat `notes/video_note.draft.md` as an input for Agent synthesis, not as the final user-readable note.
+- The final `notes/video_note.md` must be produced or updated by an Agent synthesis pass that reads `transcript/`, `index/`, and draft notes.
+- Do not overwrite a human/Agent-authored `notes/video_note.md` by rerunning Phase 3 scripts.
+- A final note must include substantive conclusions, evidence time ranges, why each point matters, follow-up questions, and quality boundaries.
+- For `B_overview` transcripts, write conclusions as analysis drafts with explicit uncertainty; do not present low-confidence details as final facts.

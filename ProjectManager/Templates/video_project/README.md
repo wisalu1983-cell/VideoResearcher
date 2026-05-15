@@ -14,11 +14,13 @@ video_project/
     video_index.yaml
     video_index.json
   notes/
+    video_note.draft.md
     video_note.md
   logs/
     process_log.md
     failure_log.json
     index_change_log.md
+    qa_report.md
 ```
 
 ## 使用规则
@@ -27,8 +29,9 @@ video_project/
 - `transcript/` 存放转录结果，要求保留时间戳。
 - `index/video_index.yaml` 是唯一人工 / Agent 维护源。
 - `index/video_index.json` 从 YAML 自动导出，不人工维护。
-- `notes/video_note.md` 面向人类阅读。
-- `logs/` 记录处理过程、失败和索引变更。
+- `notes/video_note.draft.md` 是脚本生成的结构草稿。
+- `notes/video_note.md` 是 Agent synthesis 后的人类阅读版最终笔记，不应被脚本覆盖。
+- `logs/` 记录处理过程、失败、索引变更和 Phase 4 QA 收口结果。
 
 ## 边界
 

@@ -48,6 +48,10 @@ failure_record:
 
 `logs/process_log.md` 记录每次处理的阶段、输入、输出、中间结果、工具版本、关键参数和已知限制。
 
+## QA 收口记录
+
+Phase 4 通过 `process_video.py --phase4` 执行 V1 产物结构验收，写入 `logs/qa_report.md`，并更新 `logs/process_log.md` 的 `QA 检查` 状态。若关键产物缺失、JSON 不可解析，或 `notes/video_note.md` 仍是模板占位内容，则写入 `logs/failure_log.json`，保留已有中间结果并提示用户补齐后重跑。
+
 ## 索引变更记录
 
 `logs/index_change_log.md` 记录非增量修改：

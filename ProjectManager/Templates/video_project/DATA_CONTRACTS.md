@@ -8,10 +8,12 @@
 |---|---:|---|
 | `index/video_index.yaml` | 是 | 主索引，给人和 Agent 读写 |
 | `index/video_index.json` | 否 | 从 YAML 自动导出，给脚本和工具消费 |
+| `notes/video_note.draft.md` | 否 | 脚本生成的结构草稿，供 Agent synthesis 使用 |
 | `notes/video_note.md` | 是 | 人类阅读版笔记，可由 Agent 生成和修订 |
 | `logs/process_log.md` | 是 | 记录处理过程、工具、参数和已知限制 |
 | `logs/failure_log.json` | 是 | 记录失败类型、尝试修复和用户下一步动作 |
 | `logs/index_change_log.md` | 是 | 记录索引修正、重写、删除和价值重分类 |
+| `logs/qa_report.md` | 否 | Phase 4 产物结构验收报告，由脚本重生成 |
 
 ## 索引契约
 
@@ -32,7 +34,7 @@
 
 ## 笔记契约
 
-`video_note.md` 面向快速阅读和复盘，不替代索引。笔记中的章节、片段和时间段应能追溯到 `video_index.yaml`。
+`video_note.draft.md` 面向 Agent synthesis，不作为最终阅读产物。`video_note.md` 面向快速阅读和复盘，不替代索引。笔记中的章节、片段和时间段应能追溯到 `video_index.yaml`。
 
 ## 日志契约
 
@@ -43,3 +45,7 @@
 - 保留了哪些中间结果。
 - 用户下一步需要补什么。
 - 哪些问题应进入后续优化。
+
+## QA 收口契约
+
+Phase 4 通过 `process_video.py --phase4` 检查 V1 相关产物结构，写入 `logs/qa_report.md`，并更新 `logs/process_log.md` 的 `QA 检查` 行。若关键产物缺失、JSON 不可解析或 `notes/video_note.md` 仍是模板占位内容，应写入 `logs/failure_log.json` 并停止放行。

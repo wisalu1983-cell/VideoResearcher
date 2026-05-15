@@ -17,9 +17,10 @@
 | 音频抽取 | pending |  |  | FFmpeg |  |
 | 转录 | pending |  |  | faster-whisper / whisper.cpp |  |
 | 索引生成 | pending |  |  | Agent / script |  |
-| 笔记生成 | pending |  |  | Agent |  |
+| 笔记草稿生成 | pending |  |  | process_video.py |  |
+| Agent 笔记合成 | pending | notes/video_note.draft.md, index/video_index.yaml, transcript/transcript.json | notes/video_note.md | Agent synthesis |  |
 | JSON 导出 | pending |  |  | script |  |
-| QA 检查 | pending |  |  |  |  |
+| QA 检查 | pending | V1 artifacts | logs/qa_report.md | process_video.py --phase4 | Phase 4 执行 |
 
 ## 已知限制
 
