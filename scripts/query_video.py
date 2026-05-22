@@ -107,17 +107,74 @@ def search_segments(index_data: dict, keywords: list[str]) -> list[SegmentMatch]
     return [match for _score, match in matches]
 
 
+@dataclass(frozen=True)
+class TranscriptHit:
+    id: str
+    start: str
+    end: str
+    text: str
+    context_before: list[dict]
+    context_after: list[dict]
+
+
 def _parse_time_to_seconds(time_str: str) -> float:
     return parse_transcript_timestamp(time_str)
 
 
-def get_transcript_range(project_dir: Path, start: str, end: str) -> list[dict]:
+def _seg_to_dict(segment: dict) -> dict:
+    return {
+        "id": segment.get("id", ""),
+        "start": segment.get("start", ""),
+        "end": segment.get("end", ""),
+        "text": segment.get("text", ""),
+    }
+
+
+def search_transcript(
+    project_dir: Path,
+    keywords: list[str],
+    *,
+    context_window: int = 2,
+    max_hits: int = 20,
+) -> list[TranscriptHit]:
+    if not keywords:
+        return []
+    transcript = load_transcript(project_dir)
+    segments = transcript.get("segments") or []
+    hits: list[TranscriptHit] = []
+    for i, segment in enumerate(segments):
+        text = segment.get("text", "")
+        if not any(_text_contains_keyword(text, kw) for kw in keywords):
+            continue
+        before = [_seg_to_dict(segments[j]) for j in range(max(0, i - context_window), i)]
+        after = [_seg_to_dict(segments[j]) for j in range(i + 1, min(len(segments), i + 1 + context_window))]
+        hits.append(TranscriptHit(
+            id=segment.get("id", ""),
+            start=segment.get("start", ""),
+            end=segment.get("end", ""),
+            text=text,
+            context_before=before,
+            context_after=after,
+        ))
+        if len(hits) >= max_hits:
+            break
+    return hits
+
+
+def get_transcript_range(
+    project_dir: Path,
+    start: str,
+    end: str,
+    *,
+    filter_keywords: list[str] | None = None,
+    context_window: int = 2,
+) -> list[dict]:
     transcript = load_transcript(project_dir)
     segments = transcript.get("segments") or []
     start_seconds = _parse_time_to_seconds(start)
     end_seconds = _parse_time_to_seconds(end)
-    result = []
-    for segment in segments:
+    in_range: list[int] = []
+    for i, segment in enumerate(segments):
         seg_start = segment.get("start_seconds")
         seg_end = segment.get("end_seconds")
         if seg_start is None or seg_end is None:
@@ -125,13 +182,18 @@ def get_transcript_range(project_dir: Path, start: str, end: str) -> list[dict]:
             seg_end = _parse_time_to_seconds(segment.get("end", "0"))
         if seg_end < start_seconds or seg_start > end_seconds:
             continue
-        result.append({
-            "id": segment.get("id", ""),
-            "start": segment.get("start", ""),
-            "end": segment.get("end", ""),
-            "text": segment.get("text", ""),
-        })
-    return result
+        in_range.append(i)
+    if not in_range:
+        return []
+    if not filter_keywords:
+        return [_seg_to_dict(segments[i]) for i in in_range]
+    hit_indices: set[int] = set()
+    for i in in_range:
+        text = segments[i].get("text", "")
+        if any(_text_contains_keyword(text, kw) for kw in filter_keywords):
+            for j in range(max(in_range[0], i - context_window), min(in_range[-1] + 1, i + context_window + 1)):
+                hit_indices.add(j)
+    return [_seg_to_dict(segments[i]) for i in sorted(hit_indices)]
 
 
 def get_quality_warnings(index_data: dict) -> list[str]:
@@ -346,7 +408,26 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="搜索时同时输出匹配片段的转录原文。",
     )
+    parser.add_argument(
+        "--filter",
+        type=str,
+        help="时间范围查询时的关键词过滤（空格分隔），只返回命中段及上下文。",
+    )
     return parser
+
+
+def _transcript_hits_to_dicts(hits: list[TranscriptHit]) -> list[dict]:
+    return [
+        {
+            "id": h.id,
+            "start": h.start,
+            "end": h.end,
+            "text": h.text,
+            "context_before": h.context_before,
+            "context_after": h.context_after,
+        }
+        for h in hits
+    ]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -359,9 +440,14 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.time_range:
-            segments = get_transcript_range(project_dir, args.time_range[0], args.time_range[1])
+            filter_kw = args.filter.split() if args.filter else None
+            segments = get_transcript_range(
+                project_dir, args.time_range[0], args.time_range[1],
+                filter_keywords=filter_kw,
+            )
             output = {
                 "time_range": {"start": args.time_range[0], "end": args.time_range[1]},
+                "filter": args.filter,
                 "segments": segments,
                 "total_segments": len(segments),
             }
@@ -371,12 +457,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.search:
             keywords = args.search.split()
             index_data = load_index(project_dir)
-            matches = search_segments(index_data, keywords)
+            index_matches = search_segments(index_data, keywords)
+            transcript_hits = search_transcript(project_dir, keywords)
             warnings = get_quality_warnings(index_data)
             transcript_excerpts = None
-            if args.with_transcript and matches:
+            if args.with_transcript and index_matches:
                 all_segments: list[dict] = []
-                for match in matches:
+                for match in index_matches:
                     range_segments = get_transcript_range(project_dir, match.start, match.end)
                     all_segments.extend(range_segments)
                 seen_ids: set[str] = set()
@@ -387,9 +474,11 @@ def main(argv: list[str] | None = None) -> int:
                         transcript_excerpts.append(seg)
             output = {
                 "query": args.search,
-                "matches": _matches_to_dicts(matches),
+                "index_matches": _matches_to_dicts(index_matches),
+                "transcript_hits": _transcript_hits_to_dicts(transcript_hits),
                 "quality_warnings": warnings,
-                "total_matches": len(matches),
+                "total_index_matches": len(index_matches),
+                "total_transcript_hits": len(transcript_hits),
             }
             if transcript_excerpts is not None:
                 output["transcript_excerpts"] = transcript_excerpts

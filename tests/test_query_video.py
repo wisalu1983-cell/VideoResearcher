@@ -20,6 +20,7 @@ from query_video import (
     get_transcript_range,
     load_index,
     search_segments,
+    search_transcript,
     update_segment_value,
 )
 
@@ -235,9 +236,10 @@ class CliTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             output = json.loads(result.stdout)
-            self.assertIn("matches", output)
+            self.assertIn("index_matches", output)
+            self.assertIn("transcript_hits", output)
             self.assertIn("quality_warnings", output)
-            self.assertTrue(output["total_matches"] >= 1)
+            self.assertTrue(output["total_index_matches"] >= 1)
 
     def test_cli_time_range_outputs_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -251,6 +253,92 @@ class CliTests(unittest.TestCase):
             output = json.loads(result.stdout)
             self.assertIn("segments", output)
             self.assertTrue(output["total_segments"] >= 1)
+
+
+class TranscriptSearchTests(unittest.TestCase):
+    def test_search_transcript_finds_keyword_in_text(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), transcript_data=SAMPLE_TRANSCRIPT)
+            hits = search_transcript(project, ["Cursor"])
+            self.assertTrue(len(hits) >= 1)
+            self.assertTrue(any("Cursor" in h.text for h in hits))
+
+    def test_search_transcript_returns_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), transcript_data=SAMPLE_TRANSCRIPT)
+            hits = search_transcript(project, ["agent"], context_window=1)
+            hit_with_context = next((h for h in hits if h.context_before or h.context_after), None)
+            self.assertIsNotNone(hit_with_context)
+
+    def test_search_transcript_respects_max_hits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            many_segments = {"segments": [
+                {"id": f"s{i}", "start": "00:00:00", "end": "00:00:01", "text": f"keyword {i}"}
+                for i in range(50)
+            ]}
+            project = _make_project(Path(tmp), transcript_data=many_segments)
+            hits = search_transcript(project, ["keyword"], max_hits=5)
+            self.assertEqual(len(hits), 5)
+
+    def test_search_transcript_returns_empty_for_no_match(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), transcript_data=SAMPLE_TRANSCRIPT)
+            hits = search_transcript(project, ["量子力学"])
+            self.assertEqual(hits, [])
+
+
+class FilteredTranscriptRangeTests(unittest.TestCase):
+    def test_filter_reduces_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), transcript_data=SAMPLE_TRANSCRIPT)
+            all_segs = get_transcript_range(project, "00:00:00", "00:15:10")
+            filtered = get_transcript_range(project, "00:00:00", "00:15:10", filter_keywords=["Cursor"])
+            self.assertGreater(len(all_segs), len(filtered))
+            self.assertGreater(len(filtered), 0)
+
+    def test_filter_includes_context_window(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), transcript_data=SAMPLE_TRANSCRIPT)
+            filtered = get_transcript_range(project, "00:00:00", "00:15:10", filter_keywords=["Cursor"], context_window=1)
+            texts = [s["text"] for s in filtered]
+            has_non_cursor = any("Cursor" not in t for t in texts)
+            self.assertTrue(has_non_cursor, "Context window should include non-matching segments")
+
+    def test_filter_no_match_returns_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), transcript_data=SAMPLE_TRANSCRIPT)
+            filtered = get_transcript_range(project, "00:00:00", "00:00:12", filter_keywords=["量子力学"])
+            self.assertEqual(filtered, [])
+
+
+class DualSourceSearchCliTests(unittest.TestCase):
+    def test_cli_returns_both_index_and_transcript_hits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), index_data=SAMPLE_INDEX, transcript_data=SAMPLE_TRANSCRIPT)
+            result = subprocess.run(
+                [sys.executable, str(SCRIPTS_DIR / "query_video.py"), "--project-dir", str(project), "--search", "Cursor"],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            output = json.loads(result.stdout)
+            self.assertIn("index_matches", output)
+            self.assertIn("transcript_hits", output)
+            self.assertTrue(output["total_transcript_hits"] >= 1)
+
+    def test_cli_transcript_only_hit(self) -> None:
+        """Index has no match but transcript does — the key Q1 scenario."""
+        with tempfile.TemporaryDirectory() as tmp:
+            project = _make_project(Path(tmp), index_data=SAMPLE_INDEX, transcript_data=SAMPLE_TRANSCRIPT)
+            result = subprocess.run(
+                [sys.executable, str(SCRIPTS_DIR / "query_video.py"), "--project-dir", str(project), "--search", "大家好"],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            output = json.loads(result.stdout)
+            self.assertEqual(output["total_index_matches"], 0)
+            self.assertTrue(output["total_transcript_hits"] >= 1)
 
 
 class IndexWritebackTests(unittest.TestCase):
