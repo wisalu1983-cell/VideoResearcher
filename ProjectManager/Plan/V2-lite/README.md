@@ -2,7 +2,7 @@
 
 > 所属版本：V2-lite
 > 创建：2026-05-15
-> 状态：Phase 1-2 已完成
+> 状态：Phase 1-3 + 双源搜索优化已完成
 > 设计规格：`ProjectManager/Specs/_index.md`
 
 ## 版本目标
@@ -23,19 +23,33 @@
 | Phase 2 | 索引回写 | 让追问中发现的新信息、高价值判断和纠错能回写到索引，使索引随使用逐步完善 | 追问后索引增量更新 + 变更日志 | 已完成 |
 | Phase 3 | 真实样本 QA | 端到端验证"检索 → 回答 → 不足告知"完整链路是否满足验收标准 | QA-001~005 和 REL-001~003 验证 | 已完成 |
 
+## 真实样本追问测试与优化
+
+Phase 3 之后，用 5 个真实用户追问场景做了端到端测试，发现两个结构性问题并完成了优化：
+
+**发现的问题**：
+
+| 问题 | 根因 | 影响 |
+|---|---|---|
+| 搜索索引 0 匹配（Q1 鞋子计件案例） | V1 索引每 10 分钟一个 chapter、只选 3 个 snippet，`VALUE_KEYWORDS` 偏向 AI 词汇导致业务案例被系统性挤出 | 索引外内容对用户不可见 |
+| 转录回查返回 391 段（Q5 时间段查询） | `get_transcript_range` 无过滤，10 分钟全量返回 | Agent 无法有效利用 |
+
+**根因验证**：在 transcript.json 中手动搜索确认"鞋"（17 命中）、"計算"（2 命中）、"報價"（1 命中）均被正确转录。Q1 失败原因是索引粒度问题，不是转录质量问题。
+
+**实施的优化**：
+
+| 优化 | 实现 | 效果 |
+|---|---|---|
+| 转录级搜索 `search_transcript()` | 直接在 transcript.json 全部 segment text 中搜索关键词，返回命中段 + 前后 N 段上下文 | Q1 场景：从 0 匹配变为 20 命中（定位到 00:28:40） |
+| 带过滤的转录回查 | `get_transcript_range` 增加 `filter_keywords` + `context_window` 参数 | Q5 场景：从 391 段降至 40 段（90% 降噪） |
+| 双源搜索 CLI | `--search` 同时返回 `index_matches` 和 `transcript_hits` | 索引覆盖结构信息，转录补全细节盲区 |
+
 ## 当前状态
 
-- Phase 1：`query_video.py` 已实现关键词搜索（`search_segments`）、时间段转录提取（`get_transcript_range`）、Agent 上下文格式化（`format_answer_context`）和 CLI 入口。22 个单测通过。
-- Phase 2：`add_index_topic` 和 `update_segment_value` 已实现，支持索引增量回写和变更日志。
-- Phase 3：真实样本（AI工作流开发实战分享）通过 QA-001~005 和 REL-001~003 验证，38/38 测试通过。
-
-## 下一步
-
-V2-lite 脚本层已就绪。后续可围绕真实追问场景迭代：
-- 改进搜索质量（支持繁简体归一化、同义词扩展）
-- 更高质量转录模型提升 A 档比例
-- Agent 层追问协议的标准化
+- Phase 1-3 已完成，47/47 测试通过（V1 16 + V2-lite 31）
+- 双源搜索优化已实施并通过真实样本回归验证
+- CLI 支持 `--search`（双源）、`--time-range`（可带 `--filter`）、`--with-transcript`
 
 ## 验收记录
 
-`QA/runs/2026-05-15-v2-lite-phase-1-2.md`
+- `QA/runs/2026-05-15-v2-lite-phase-1-2.md`
